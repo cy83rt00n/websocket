@@ -1,0 +1,27 @@
+{
+    "services": {
+        "ws": {
+            "port": 11000,
+            "ip": "0.0.0.0",
+            "host": "kind-web.srvc.loc"
+        },
+        "socket": {
+            "port": 10090,
+            "host": "localhost"
+        },
+        "db": {
+            "mysql": {
+                "host": "localhost",
+                "name": "test",
+                "user": "bitterjuice",
+                "password": "m1x3dz3r0"
+            },
+            "pgsql": {
+                "host": "localhost",
+                "name": "test",
+                "user": "bitterjuice",
+                "password": "m1x3dz3r0"
+            }
+        }
+    }
+}

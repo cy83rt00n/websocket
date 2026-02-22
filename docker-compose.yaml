@@ -1,0 +1,28 @@
+services:
+  code:
+    build: .
+    image: "${SERVICE_CODE_IMG_NAME}:${SERVICE_CODE_IMG_VER}"
+    container_name: skeleton-code
+    volumes:
+      - ./codebase:/code
+      - ./codebase:/var/www/html
+      - ./docker/docker-entrypoint.sh:/docker-entrypoint.sh
+  www:
+    build: services/nginx
+    image: "${SERVICE_WWW_IMG_NAME}:${SERVICE_WWW_IMG_VER}"
+    container_name: skeleton-www
+    volumes:
+      - ./codebase:/var/www/html
+    network_mode: host
+    depends_on:
+      - fpm
+      - code
+  fpm:
+    build: services/php-fpm
+    image: "${SERVICE_FPM_IMG_NAME}:${SERVICE_FPM_IMG_VER}"
+    container_name: skeleton-fpm
+    volumes:
+      - ./codebase:/var/www/html
+    network_mode: host
+    depends_on:
+      - code

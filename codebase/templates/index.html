@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+</head>
+
+<body>
+    <script>
+
+        const initializeWebSocket = () => {
+            const ws = new WebSocket('{{ $ws_url }}');
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            
+            ws.addEventListener('error', function (event) {
+                console.log("WebSocket error occurred :", event);
+            });
+            
+            ws.addEventListener('open', function (event) {
+                console.log("Connection established");
+            });
+
+            ws.addEventListener("close", (event) => {
+                console.log("The connection has been closed successfully.");
+            });
+
+            ws.addEventListener('message', function (event) {
+                message = JSON.parse(event.data);
+                if(typeof(message) === 'string') {
+                    message = JSON.parse(message);
+                }
+                console.log('Message from server ', typeof(message), message);
+                const reciever = document.querySelector('.reciever');
+                if (message.type === 'greeting') {
+                    client_id = message.id;
+                }
+                if (message.type === 'service'){
+                    fn_name = `do_${message.command}`;
+                    fn_name.call(this, message.args);
+                    
+                }
+                if(message.type === 'message' || message.type === 'broadcast') {
+                    reciever.innerText += message.message + '\n';
+                }
+            });
+
+                return ws;
+        }
+
+        let client_id = null;
+        let ws = initializeWebSocket();
+
+        let getState = () => {
+            switch (ws.readyState) {
+                case WebSocket.CONNECTING:
+                    return 'CONNECTING';
+                case WebSocket.OPEN:
+                    return 'OPEN';
+                case WebSocket.CLOSING:
+                    return 'CLOSING';
+                case WebSocket.CLOSED:
+                    return 'CLOSED';
+                default:
+                    return 'UNKNOWN';
+            }
+        };
+
+        let reconnect = () => {
+            console.log('Attempting to reconnect...');
+            if(getState() === 'OPEN' || getState() === 'CONNECTING') {
+                console.log('WebSocket is already open or connecting. No need to reconnect.');
+                return;
+            }
+            ws = initializeWebSocket();
+        };
+
+        function sendMessage(message = undefined) {
+            if (message === undefined) {
+                throw new Error('Empty message is not allowed');
+            }
+            if (client_id === null || client_id === undefined) {
+                throw new Error('Client ID is not set. Cannot send message.');
+            }
+            message = JSON.stringify({
+                type: 'message',
+                message: message,
+                id: client_id,
+            });
+            ws.send(message);
+        }
+
+        function sendService(message = undefined) {
+            if (message === undefined) {
+                throw new Error('Empty message is not allowed');
+            }
+            if (client_id === null || client_id === undefined) {
+                throw new Error('Client ID is not set. Cannot send message.');
+            }
+            message = JSON.stringify({
+                type: 'service',
+                command: message,
+                args: [],
+                id: client_id
+            });
+            ws.send(message);
+        }
+
+        function sendBroadcast(message = undefined) {
+            if (message === undefined) {
+                throw new Error('Empty message is not allowed');
+            }
+            if (client_id === null || client_id === undefined) {
+                throw new Error('Client ID is not set. Cannot send message.');
+            }
+            message = JSON.stringify({
+                type: 'broadcast',
+                message: message,
+                id: client_id
+            });
+            ws.send(message);
+        }
+    </script>
+    <pre class="reciever">
+    </pre>
+</body>
+
+</html>
